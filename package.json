@@ -1,0 +1,35 @@
+{
+  "name": "car-listing-marketplace",
+  "version": "1.0.0",
+  "description": "APIs for a Car Listing Marketplace where any registered user will be able to browse car listings.",
+  "private": true,
+  "scripts": {
+    "start": "node ./src/index.js",
+    "build": "webpack --config webpack.config.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "eslint": "eslint ./src",
+    "eslint-fix": "eslint ./src --fix"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Amila-Rukshan/car-listing-marketplace.git"
+  },
+  "author": "Amila Senadheera",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/Amila-Rukshan/car-listing-marketplace/issues"
+  },
+  "homepage": "https://github.com/Amila-Rukshan/car-listing-marketplace#readme",
+  "devDependencies": {
+    "@babel/core": "^7.23.5",
+    "babel-loader": "^9.1.3",
+    "eslint": "^8.55.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.29.0",
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.4"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
