@@ -1,16 +1,16 @@
-# Build Server
+### Build server
 
 ```
 docker build . -t amila15/car-listing-marketplace:v1.0.0
 ```
 
-# Load Image (Optional)
+### Load image (Optional)
 
 ```
 kind load docker-image amila15/car-listing-marketplace:v1.0.0
 ```
 
-# Run Application
+### Run application
 
 ```
 k apply -f manifests/kubernetes
