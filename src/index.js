@@ -5,6 +5,9 @@ const jwt = require("jsonwebtoken");
 const secret = "your-secret-key";
 
 const { databaseMiddleware } = require("./middleware/database");
+const { authenticated } = require("./middleware/authn");
+const { authorized } = require("./middleware/authz");
+const { generate_access_token } = require("./utils/auth");
 const routes = require("./routes/v1");
 
 const app = express();
@@ -26,6 +29,10 @@ const ROLES = {
   ADMIN: 2,
   USER: 3,
 };
+
+const SUPER_ADMIN_ROLE = "super-admin";
+const ADMIN_ROLE = "admin";
+const USER_ROLE = "user";
 
 const INVERSE_ROLES = {
   1: "super-admin",
@@ -78,22 +85,56 @@ app.post("/login", (req, res) => {
         res.status(401).send({ message: "Invalid email or password" });
         return;
       }
-      const token = jwt.sign({ id: rows[0].id, email: rows[0].email }, secret);
-      res.send({ token });
+      const access_token = generate_access_token(rows[0]);
+      res.send({ access_token });
     }
   );
 });
 
-// add car, check role of admin / super admin
-app.post("/car", (req, res) => {
+// post car, check role of admin / super admin
+app.post(
+  "/car",
+  authenticated,
+  authorized(SUPER_ADMIN_ROLE, ADMIN_ROLE),
+  (req, res) => {
+    req.db.query(
+      "INSERT INTO car (make, model, year, mileage, price, description, image_url) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      [
+        req.body.make,
+        req.body.model,
+        req.body.year,
+        req.body.mileage,
+        req.body.price,
+        req.body.description,
+        req.body.image_url,
+      ],
+      (err, result) => {
+        req.db.release();
+        if (err) {
+          console.error(err);
+          res.status(500).send({
+            message: "Internal server error",
+          });
+          return;
+        }
+        res.status(200).send({
+          message: "Car posted successfully!",
+        });
+      }
+    );
+  }
+);
+
+// book car / need to do transaction with serializable isolation level (enable 2PL) and test
+// check role of user
+app.post("/book?id=<car-id>", authenticated, authorized(USER_ROLE), (req, res) => {
   res.status(200).send({
     message: "OK",
   });
 });
 
-// book car / need to do transaction with serializable isolation level (enable 2PL) and test
-// check role of user
-app.post("/book?id=<car-id>", (req, res) => {
+// cancel booking, need to check within 24 hours
+app.delete("/book?id=<car-id>", authenticated, authorized(USER_ROLE), (req, res) => {
   res.status(200).send({
     message: "OK",
   });
