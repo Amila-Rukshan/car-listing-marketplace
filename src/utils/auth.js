@@ -13,7 +13,7 @@ module.exports.generate_access_token = (user) =>
     },
     secret,
     {
-      expiresIn: "1h",
+      expiresIn: "24h",
       subject: user.username,
       issuer: "car-rental.com",
       audience: "car-rental.com",

@@ -21,6 +21,14 @@ CREATE TABLE car (
     image_url VARCHAR(255)
 );
 
+CREATE TABLE car_time_slot_lock (
+  car_id INT NOT NULL,
+  start_time DATETIME NOT NULL,
+  end_time DATETIME NOT NULL,
+  PRIMARY KEY (car_id, start_time, end_time),
+  FOREIGN KEY (car_id) REFERENCES car(id)
+);
+
 CREATE TABLE booking (
     id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,

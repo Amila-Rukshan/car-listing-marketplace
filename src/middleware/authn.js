@@ -15,6 +15,6 @@ module.exports.authenticated = (req, res, next) => {
       next();
     });
   } else {
-    res.status(401).sendStatus({ message: "Unanthicated"});
+    res.status(401).send({ message: "Unanthicated"});
   }
 };
