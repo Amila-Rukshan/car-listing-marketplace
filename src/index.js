@@ -8,6 +8,7 @@ const { databaseMiddleware } = require("./middleware/database");
 const { authenticated } = require("./middleware/authn");
 const { authorized } = require("./middleware/authz");
 const { generate_access_token } = require("./utils/auth");
+const { getFormattedDate } = require("./utils/date");
 const routes = require("./routes/v1");
 
 const app = express();
@@ -123,7 +124,6 @@ app.post(
         let currentTime = new Date();
         currentTime.setDate(currentTime.getDate() + 1);
         currentTime.setHours(0, 0, 0, 0);
-       
         let bookingSlotsEndTime = new Date();
         bookingSlotsEndTime.setDate(currentTime.getDate());
         bookingSlotsEndTime.setHours(24, 0, 0, 0);
@@ -267,9 +267,31 @@ app.post("/book", authenticated, authorized(USER_ROLE), (req, res) => {
 
 // cancel booking, need to check within 24 hours
 app.delete("/book", authenticated, authorized(USER_ROLE), (req, res) => {
-  res.status(200).send({
-    message: "OK",
-  });
+  req.db.query(
+    "DELETE FROM booking WHERE id = ? AND user_id = ? AND DATE_ADD(created_at, INTERVAL 24 HOUR) < ?",
+    [req.body.booking_id, req.user.id, getFormattedDate(new Date())],
+    (err, results) => {
+      if (err) {
+        console.error(err);
+        res.status(500).send({
+          message: "Internal server error",
+        });
+        req.db.release();
+        return;
+      }
+      if (results.affectedRows === 0) {
+        res.status(400).send({
+          message: "Booking cannot be cancelled.",
+        });
+        req.db.release();
+        return;
+      }
+      res.status(200).send({
+        message: "Booking cancelled successfully!",
+      });
+      req.db.release();
+    }
+  );
 });
 
 // search with mode/model/year/milage need index, consider materialized view since join is expensive
