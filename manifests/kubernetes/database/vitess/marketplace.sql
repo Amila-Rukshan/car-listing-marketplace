@@ -2,6 +2,7 @@ CREATE TABLE role (
     id INT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(255) NOT NULL UNIQUE
 );
+
 CREATE TABLE user (
     id INT PRIMARY KEY AUTO_INCREMENT,
     username VARCHAR(255) NOT NULL UNIQUE,
@@ -10,6 +11,7 @@ CREATE TABLE user (
     role_id INT NOT NULL,
     FOREIGN KEY (role_id) REFERENCES role(id)
 );
+
 CREATE TABLE car (
     id INT PRIMARY KEY AUTO_INCREMENT,
     make VARCHAR(255) NOT NULL,
@@ -22,11 +24,11 @@ CREATE TABLE car (
 );
 
 CREATE TABLE car_time_slot_lock (
-  car_id INT NOT NULL,
-  start_time DATETIME NOT NULL,
-  end_time DATETIME NOT NULL,
-  PRIMARY KEY (car_id, start_time, end_time),
-  FOREIGN KEY (car_id) REFERENCES car(id)
+    car_id INT NOT NULL,
+    start_time DATETIME NOT NULL,
+    end_time DATETIME NOT NULL,
+    PRIMARY KEY (car_id, start_time, end_time),
+    FOREIGN KEY (car_id) REFERENCES car(id)
 );
 
 CREATE TABLE booking (

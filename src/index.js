@@ -15,11 +15,8 @@ const app = express();
 const port = 3000;
 
 app.use(databaseMiddleware);
-
 app.use(express.json());
-
 app.use(compression());
-
 app.use(cors());
 app.options("*", cors());
 
@@ -294,24 +291,99 @@ app.delete("/book", authenticated, authorized(USER_ROLE), (req, res) => {
   );
 });
 
-// search with mode/model/year/milage need index, consider materialized view since join is expensive
-// sample entry in search result
+// search with make/model/year/mileage need index
+// we should partition to make this performant
+// filter input will look like
 // {
-//   "id": 1,
-//   "model": "Toyota",
-//   "mode": "Camry",
-//   "year": 2019,
-//   "milage": 10000,
-//   "price": 10000,
-//   "location": "San Francisco",
-//   "booked-times": [
-//      { start: "2020-01-01", end: "2020-01-02" },
-//      { start: "2020-01-03", end: "2020-01-04" },
-//   ]
+//   filter: {
+//     make: "Mazda",
+//     model: "Rx-8",
+//     year: {
+//       start: 2005,
+//       end: 2022,
+//     },
+//     milage: {
+//       start: 0,
+//       end: 10000,
+//     },
+//     price: {
+//       start: 20000,
+//       end: 30000,
+//     },
+//   },
+//   metadata: {
+//     limit: 2,
+//     page: 4,
+//   },
 // }
-app.get("/search", (req, res) => {
-  res.status(200).send({
-    message: "OK",
+app.get("/search", authenticated, authorized(USER_ROLE), (req, res) => {
+  let limit =
+    req.body.metadata && req.body.metadata.limit
+      ? parseInt(req.body.metadata.limit)
+      : 10; // Default limit is 10
+  let page =
+    req.body.metadata && req.body.metadata.page
+      ? parseInt(req.body.metadata.page)
+      : 1; // Default page is 1
+  let offset = (page - 1) * limit;
+
+  let baseQuery = `
+      FROM car
+      LEFT JOIN booking ON car.id = booking.car_id 
+    `;
+
+  let filters = [];
+  if (req.body.filter && req.body.filter.make) {
+    filters.push(`make = ${req.db.escape(req.body.filter.make)}`);
+  }
+  if (req.body.filter && req.body.filter.model) {
+    filters.push(`model = ${req.db.escape(req.body.filter.model)}`);
+  }
+  if (req.body.filter && req.body.filter.year) {
+    filters.push(
+      `year BETWEEN ${req.db.escape(
+        req.body.filter.year.start
+      )} AND ${req.db.escape(req.body.filter.year.end)}`
+    );
+  }
+  if (req.body.filter && req.body.filter.mileage) {
+    filters.push(
+      `mileage BETWEEN ${req.db.escape(
+        req.body.filter.mileage.start
+      )} AND ${req.db.escape(req.body.filter.mileage.end)}`
+    );
+  }
+  if (req.body.filter && req.body.filter.price) {
+    filters.push(
+      `price BETWEEN ${req.db.escape(
+        req.body.filter.price.start
+      )} AND ${req.db.escape(req.body.filter.price.end)}`
+    );
+  }
+
+  if (filters.length > 0) {
+    baseQuery += ` WHERE ${filters.join(" AND ")} `;
+  }
+
+  let sql = `
+      SELECT car.id, car.make, car.model, car.year, car.mileage, car.price, 
+      JSON_ARRAYAGG(JSON_OBJECT('start', booking.start_time, 'end', booking.end_time)) AS booked_times 
+      ${baseQuery}
+      GROUP BY car.id
+      LIMIT ${limit} OFFSET ${offset}
+    `;
+
+  req.db.query(sql, (err, rows) => {
+    req.db.release();
+    if (err) {
+      console.error(err);
+      res.status(500).send("Database error");
+      return;
+    }
+    rows.forEach((row) => {
+      row.booked_times = JSON.parse(row.booked_times);
+    });
+    res.send(rows);
   });
 });
 
@@ -326,7 +398,7 @@ app.get(
       if (err) {
         // Log the error
         console.error(err);
-        res.status(500).send("Database error");
+        res.status(500).send("Internal server error");
         return;
       }
       res.send(rows);
