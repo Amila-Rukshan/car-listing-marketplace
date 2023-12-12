@@ -45,6 +45,6 @@ figlet("Car Listing Marketplace", function (err, data) {
     console.dir(err);
     return;
   }
-  app.listen(port, () => console.log(`Listening on port: ${port}`));
+  app.listen(port, () => console.log(`Car Listing Marketplace Listening on port: ${port}`));
   console.log(data);
 });
