@@ -1,39 +1,41 @@
-const bcrypt = require('bcrypt');
+const bcrypt = require("bcryptjs");
 const { StatusCodes } = require("http-status-codes");
 const { ROLES } = require("../config/consts/role");
 const { generate_access_token } = require("../utils/auth");
 
 const register = (req, res) => {
-  bcrypt.hash(req.body.password, 10, function (err, password_hash) {
-    if (err) {
-      res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
-        message: "Error hashing password",
-      });
-      return;
-    }
-    req.db.query(
-      "INSERT INTO user (username, email, password_hash, role_id) VALUES (?, ?, ?, ?)",
-      [req.body.username, req.body.email, password_hash, ROLES.USER],
-      (err, result) => {
-        req.db.release();
-        if (err) {
-          if (err.code === "ER_DUP_ENTRY") {
-            res.status(StatusCodes.CONFLICT).send({
-              message: "Usename/email already exists!!",
-            });
-            return;
-          } else {
-            res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
-              message: "Internal server error",
-            });
-          }
-          return;
-        }
-        res.status(StatusCodes.OK).send({
-          message: "User registered successfully!",
+  bcrypt.genSalt(10, function (err, salt) {
+    bcrypt.hash(req.body.password, salt, function (err, password_hash) {
+      if (err) {
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
+          message: "Error hashing password",
         });
+        return;
       }
-    );
+      req.db.query(
+        "INSERT INTO user (username, email, password_hash, role_id) VALUES (?, ?, ?, ?)",
+        [req.body.username, req.body.email, password_hash, ROLES.USER],
+        (err, result) => {
+          req.db.release();
+          if (err) {
+            if (err.code === "ER_DUP_ENTRY") {
+              res.status(StatusCodes.CONFLICT).send({
+                message: "Usename/email already exists!!",
+              });
+              return;
+            } else {
+              res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
+                message: "Internal server error",
+              });
+            }
+            return;
+          }
+          res.status(StatusCodes.OK).send({
+            message: "User registered successfully!",
+          });
+        }
+      );
+    });
   });
 };
 

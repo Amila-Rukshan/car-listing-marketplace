@@ -2,7 +2,6 @@ const express = require("express");
 const compression = require("compression");
 const cors = require("cors");
 const morgan = require("morgan");
-var figlet = require("figlet");
 
 const { databaseMiddleware } = require("./middleware/database");
 const routes = require("./routes/v1");
@@ -37,14 +36,6 @@ process.on("SIGTERM", () => {
 });
 
 const port = process.env.PORT || 3000;
-
-
-figlet("Car Listing Marketplace", function (err, data) {
-  if (err) {
-    console.log("Something went wrong...");
-    console.dir(err);
-    return;
-  }
-  app.listen(port, () => console.log(`Car Listing Marketplace Listening on port: ${port}`));
-  console.log(data);
-});
+app.listen(port, () =>
+  console.log(`Car Listing Marketplace Listening on port: ${port}`)
+);
