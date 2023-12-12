@@ -42,3 +42,11 @@ CREATE TABLE booking (
     FOREIGN KEY (user_id) REFERENCES user(id),
     FOREIGN KEY (car_id) REFERENCES car(id)
 );
+
+CREATE INDEX idx_make ON car(make);
+CREATE INDEX idx_model ON car(model);
+CREATE INDEX idx_year ON car(year);
+CREATE INDEX idx_mileage ON car(mileage);
+CREATE INDEX idx_price ON car(price);
+
+CREATE INDEX idx_car_id ON booking(car_id);

@@ -327,11 +327,6 @@ app.get("/search", authenticated, authorized(USER_ROLE), (req, res) => {
       : 1; // Default page is 1
   let offset = (page - 1) * limit;
 
-  let baseQuery = `
-      FROM car
-      LEFT JOIN booking ON car.id = booking.car_id 
-    `;
-
   let filters = [];
   if (req.body.filter && req.body.filter.make) {
     filters.push(`make = ${req.db.escape(req.body.filter.make)}`);
@@ -361,15 +356,18 @@ app.get("/search", authenticated, authorized(USER_ROLE), (req, res) => {
     );
   }
 
-  if (filters.length > 0) {
-    baseQuery += ` WHERE ${filters.join(" AND ")} `;
-  }
+  let filterQuery =
+    filters.length > 0 ? ` WHERE ${filters.join(" AND ")} ` : "";
 
   let sql = `
-      SELECT car.id, car.make, car.model, car.year, car.mileage, car.price, 
+      SELECT filtered_car.id, filtered_car.make, filtered_car.model, filtered_car.year, filtered_car.mileage, filtered_car.price, 
       JSON_ARRAYAGG(JSON_OBJECT('start', booking.start_time, 'end', booking.end_time)) AS booked_times 
-      ${baseQuery}
-      GROUP BY car.id
+      FROM (
+        SELECT * FROM car
+        ${filterQuery}
+      ) AS filtered_car
+      LEFT JOIN booking ON filtered_car.id = booking.car_id 
+      GROUP BY filtered_car.id
       LIMIT ${limit} OFFSET ${offset}
     `;
 
@@ -386,7 +384,6 @@ app.get("/search", authenticated, authorized(USER_ROLE), (req, res) => {
     res.send(rows);
   });
 });
-
 // get users from database
 app.get(
   "/users",
