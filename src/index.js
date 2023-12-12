@@ -1,42 +1,32 @@
 const express = require("express");
 const compression = require("compression");
 const cors = require("cors");
-const jwt = require("jsonwebtoken");
-const secret = "your-secret-key";
+const morgan = require("morgan");
+const { StatusCodes } = require("http-status-codes");
 
 const { databaseMiddleware } = require("./middleware/database");
 const { authenticated } = require("./middleware/authn");
 const { authorized } = require("./middleware/authz");
 const { generate_access_token } = require("./utils/auth");
 const { getFormattedDate } = require("./utils/date");
+const {
+  ROLES,
+  USER_ROLE,
+  ADMIN_ROLE,
+  SUPER_ADMIN_ROLE,
+} = require("./config/consts/role");
 const routes = require("./routes/v1");
 
 const app = express();
-const port = 3000;
 
+app.use(morgan("combined"));
 app.use(databaseMiddleware);
 app.use(express.json());
 app.use(compression());
 app.use(cors());
 app.options("*", cors());
 
-app.get("/", (req, res) => res.send("Hello World!\n"));
-
-const ROLES = {
-  SUPER_ADMIN: 1,
-  ADMIN: 2,
-  USER: 3,
-};
-
-const SUPER_ADMIN_ROLE = "super-admin";
-const ADMIN_ROLE = "admin";
-const USER_ROLE = "user";
-
-const INVERSE_ROLES = {
-  1: "super-admin",
-  2: "admin",
-  3: "user",
-};
+app.get("/", (req, res) => res.json({ message: "Welcome to Car Rental API" }));
 
 // register user
 app.post("/register", (req, res) => {
@@ -47,18 +37,18 @@ app.post("/register", (req, res) => {
       req.db.release();
       if (err) {
         if (err.code === "ER_DUP_ENTRY") {
-          res.status(409).send({
+          res.status(StatusCodes.CONFLICT).send({
             message: "Usename/email already exists!!",
           });
           return;
         } else {
-          res.status(500).send({
+          res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
             message: "Internal server error",
           });
         }
         return;
       }
-      res.status(200).send({
+      res.status(StatusCodes.OK).send({
         message: "User registered successfully!",
       });
     }
@@ -74,13 +64,15 @@ app.post("/login", (req, res) => {
       req.db.release();
       if (err) {
         console.error(err);
-        res.status(500).send({
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
           message: "Internal server error",
         });
         return;
       }
       if (rows.length === 0) {
-        res.status(401).send({ message: "Invalid email or password" });
+        res
+          .status(StatusCodes.UNAUTHORIZED)
+          .send({ message: "Invalid email or password" });
         return;
       }
       const access_token = generate_access_token(rows[0]);
@@ -141,7 +133,7 @@ app.post(
               if (err) {
                 req.db.release();
                 console.error(err);
-                res.status(500).send({
+                res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
                   message: "Internal server error",
                 });
                 return;
@@ -150,7 +142,7 @@ app.post(
           );
         }
         req.db.release();
-        res.status(200).send({
+        res.status(StatusCodes.OK).send({
           message: "Car posted successfully!",
         });
       }
@@ -170,7 +162,7 @@ app.post("/book", authenticated, authorized(USER_ROLE), (req, res) => {
   req.db.beginTransaction((err) => {
     if (err) {
       console.error(err);
-      res.status(500).send({
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
         message: "Internal server error 1",
       });
       req.db.release();
@@ -184,7 +176,7 @@ app.post("/book", authenticated, authorized(USER_ROLE), (req, res) => {
       (err, results) => {
         if (err) {
           req.db.rollback(() => {
-            res.status(409).send({
+            res.status(StatusCodes.CONFLICT).send({
               message: "Conflict error 0",
             });
           });
@@ -199,7 +191,7 @@ app.post("/book", authenticated, authorized(USER_ROLE), (req, res) => {
           (err, results) => {
             if (err) {
               req.db.rollback(() => {
-                res.status(409).send({
+                res.status(StatusCodes.CONFLICT).send({
                   message: "Conflict error 1",
                 });
               });
@@ -219,7 +211,7 @@ app.post("/book", authenticated, authorized(USER_ROLE), (req, res) => {
                 (err, results) => {
                   if (err) {
                     req.db.rollback(() => {
-                      res.status(409).send({
+                      res.status(StatusCodes.CONFLICT).send({
                         message: "Conflict error 2",
                       });
                     });
@@ -230,7 +222,7 @@ app.post("/book", authenticated, authorized(USER_ROLE), (req, res) => {
                   req.db.commit((err) => {
                     if (err) {
                       req.db.rollback(() => {
-                        res.status(409).send({
+                        res.status(StatusCodes.CONFLICT).send({
                           message: "Conflict error 3",
                         });
                       });
@@ -238,7 +230,7 @@ app.post("/book", authenticated, authorized(USER_ROLE), (req, res) => {
                       return;
                     }
 
-                    res.status(200).send({
+                    res.status(StatusCodes.OK).send({
                       message: "Booking is sucessful!",
                       data: {
                         bookingId: results.insertId,
@@ -249,7 +241,7 @@ app.post("/book", authenticated, authorized(USER_ROLE), (req, res) => {
                 }
               );
             } else {
-              res.status(400).send({
+              res.status(StatusCodes.CONFLICT).send({
                 message:
                   "Booking cannot be placed due to already existing bookings.",
               });
@@ -270,20 +262,20 @@ app.delete("/book", authenticated, authorized(USER_ROLE), (req, res) => {
     (err, results) => {
       if (err) {
         console.error(err);
-        res.status(500).send({
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
           message: "Internal server error",
         });
         req.db.release();
         return;
       }
       if (results.affectedRows === 0) {
-        res.status(400).send({
+        res.status(StatusCodes.FORBIDDEN).send({
           message: "Booking cannot be cancelled.",
         });
         req.db.release();
         return;
       }
-      res.status(200).send({
+      res.status(StatusCodes.OK).send({
         message: "Booking cancelled successfully!",
       });
       req.db.release();
@@ -375,33 +367,15 @@ app.get("/search", authenticated, authorized(USER_ROLE), (req, res) => {
     req.db.release();
     if (err) {
       console.error(err);
-      res.status(500).send("Database error");
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).send("Database error");
       return;
     }
     rows.forEach((row) => {
       row.booked_times = JSON.parse(row.booked_times);
     });
-    res.send(rows);
+    res.status(StatusCodes.OK).send({ data: rows });
   });
 });
-// get users from database
-app.get(
-  "/users",
-  authenticated,
-  authorized(SUPER_ADMIN_ROLE, ADMIN_ROLE),
-  (req, res) => {
-    req.db.query("SELECT * FROM user", (err, rows) => {
-      req.db.release();
-      if (err) {
-        // Log the error
-        console.error(err);
-        res.status(500).send("Internal server error");
-        return;
-      }
-      res.send(rows);
-    });
-  }
-);
 
 // gracefully shutdown database connection pool when app is terminated
 process.on("SIGTERM", () => {
@@ -420,4 +394,5 @@ process.on("SIGTERM", () => {
   });
 });
 
+const port = process.env.PORT || 3000;
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));

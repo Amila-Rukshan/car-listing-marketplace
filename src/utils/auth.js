@@ -1,8 +1,5 @@
 const jwt = require("jsonwebtoken");
-const { INVERSE_ROLES } = require("../consts/role");
-
-// move to config env
-const secret = "your-secret-key";
+const { INVERSE_ROLES } = require("../config/consts/role");
 
 module.exports.generate_access_token = (user) =>
   jwt.sign(
@@ -11,11 +8,11 @@ module.exports.generate_access_token = (user) =>
       email: user.email,
       role: INVERSE_ROLES[user.role_id],
     },
-    secret,
+    process.env.JWT_KEY,
     {
-      expiresIn: "24h",
+      expiresIn: process.env.JWT_EXPIRES_IN,
       subject: user.username,
-      issuer: "car-rental.com",
-      audience: "car-rental.com",
+      issuer: process.env.JWT_ISSUER,
+      audience: process.env.JWT_AUDIENCE,
     }
   );

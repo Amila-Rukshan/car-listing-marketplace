@@ -1,20 +1,20 @@
 const jwt = require("jsonwebtoken");
-
-// move to config env
-const secret = "your-secret-key";
+const { StatusCodes } = require("http-status-codes");
 
 module.exports.authenticated = (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (authHeader) {
     const token = authHeader.split(" ")[1];
-    jwt.verify(token, secret, (err, user) => {
+    jwt.verify(token, process.env.JWT_KEY, (err, user) => {
       if (err) {
-        return res.status(403).send({ message: "Invalid token" });
+        return res
+          .status(StatusCodes.FORBIDDEN)
+          .send({ message: "Invalid token" });
       }
       req.user = user;
       next();
     });
   } else {
-    res.status(401).send({ message: "Unanthicated"});
+    res.status(StatusCodes.UNAUTHORIZED).send({ message: "Unauthorized" });
   }
 };

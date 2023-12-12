@@ -1,0 +1,11 @@
+{
+    "env":{
+        "JWT_KEY" : "C@r-L1571n9-M@rk37pl@c3",
+        "JWT_EXPIRES_IN": "24h",
+        "JWT_ISSUER": "car-listing.com",
+        "JWT_AUDIENCE": "car-listing.com",
+        "NODE_ENV": "development",
+        "DB_HOST": "localhost",
+        "DB_PORT": "15306"
+    }
+}

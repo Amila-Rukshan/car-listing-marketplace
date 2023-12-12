@@ -13,3 +13,19 @@ spec:
     app: server-api
 status:
   loadBalancer: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    planetscale.com/cluster: car-listing-marketplace
+    planetscale.com/component: vtgate
+  name: database-api
+spec:
+  ports:
+  - port: 3306
+    protocol: TCP
+    targetPort: 3306
+  selector:
+    planetscale.com/cluster: car-listing-marketplace
+    planetscale.com/component: vtgate

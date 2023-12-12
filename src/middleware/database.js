@@ -2,8 +2,8 @@ const mysql = require("mysql");
 
 const pool = mysql.createPool({
   connectionLimit : 5,
-  host: "localhost",
-  port: 15306,
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT ,
   user: "user",
   password: "",
   database: "car-listing-marketplace",

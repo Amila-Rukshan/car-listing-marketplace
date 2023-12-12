@@ -18,6 +18,24 @@ spec:
       - name: server-api
         image: amila15/car-listing-marketplace:v1.0.0 
         imagePullPolicy: IfNotPresent
+        env:
+        - name: NODE_ENV
+          value: production
+        - name: DB_HOST
+          value: database-api
+        - name: DB_PORT
+          value: "3306"
+        - name: JWT_KEY
+          valueFrom:
+            secretKeyRef:
+              name: token-gen-key
+              key: secret
+        - name: JWT_EXPIRES_IN
+          value: "24h"
+        - name: JWT_ISSUER
+          value: car-listing.com
+        - name: JWT_AUDIENCE
+          value: car-listing.com
         resources:
           requests:
             memory: "128Mi"
