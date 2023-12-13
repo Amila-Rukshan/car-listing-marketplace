@@ -9,7 +9,7 @@ k apply -f db_cluster.yaml
 
 ```
 vtctldclient ApplySchema --sql-file="marketplace.sql" car-listing-marketplace
-
+vtctldclient ApplyVSchema --vschema-file="marketplace_vschema.json" car-listing-marketplace
 ```
 
 ### Port-forward vtgate
