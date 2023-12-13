@@ -1,6 +1,6 @@
 ## Run postman collection
 
-| property  | value |
+|   |  |
 | ------------- | ------------- |
 | Postman collection URL  | https://api.postman.com/collections/3399909-8552301a-0d51-4acc-9b09-cae2a1bf780e?access_key=PMAT-01HHF91WPTK17ZRXP9YKP7EM10  |
 | Host  | car-listing-marketplace.developerdiary.me |
