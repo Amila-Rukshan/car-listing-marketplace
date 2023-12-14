@@ -1,4 +1,4 @@
-INSERT INTO user (username, email, password_hash, role_id) VALUES ('super-admin', 'superadmin@example.com', SHA2('password3', 256),  1);
+INSERT INTO user (id, username, email, password_hash, role_id) VALUES ( 'b3b2a1d5-644f-4a6c-9f52-df5a47ca6a3e', 'super-admin', 'superadmin@example.com', SHA2('password3', 256),  1);
 INSERT INTO user (username, email, password_hash, role_id) VALUES ('admin1', 'admin1@example.com', SHA2('password4', 256), 2);
 INSERT INTO user (username, email, password_hash, role_id) VALUES ('admin2', 'admin2@example.com', SHA2('password5', 256), 2);
 INSERT INTO user (username, email, password_hash, role_id) VALUES ('user1', 'user1@example.com', SHA2('password6', 256), 3);
@@ -13,8 +13,8 @@ INSERT INTO car (make, model, year, mileage, price, description, image_url) VALU
 INSERT INTO car (make, model, year, mileage, price, description, image_url) VALUES ('Hyundai', 'Elantra', 2020, 40000, 18000, 'Reliable and fuel-efficient Hyundai Elantra for everyday commutes.', 'https://example.com/elantra.png');
 INSERT INTO car (make, model, year, mileage, price, description, image_url) VALUES ('Kia', 'Forte', 2019, 50000, 15000, 'Affordable and stylish Kia Forte for city driving.', 'https://example.com/forte.png');
 
-INSERT INTO booking (user_id, car_id, start_time, end_time, created_at)
-VALUES ((SELECT id FROM user WHERE username = 'user1'), (SELECT id FROM car WHERE model = 'Corolla'), '2023-12-11 10:00:00', '2023-12-11 13:00:00', NOW());
+INSERT INTO booking (id, user_id, car_id, start_time, end_time, created_at)
+VALUES ('a3b8c2b8-2b4c-4d3f-a25a-5f6aa0b2420b','b6ea1b57-573b-4951-ba7e-cb27b1bef347', 'aff30900-c9cf-40d4-a954-68519d3d4c2e', '2023-12-11 10:00:00', '2023-12-11 13:00:00', NOW());
 
 INSERT INTO booking (user_id, car_id, start_time, end_time, created_at)
 VALUES ((SELECT id FROM user WHERE username = 'user2'), (SELECT id FROM car WHERE model = 'Mustang'), '2023-12-12 09:00:00', '2023-12-12 12:00:00', NOW());
@@ -23,7 +23,7 @@ INSERT INTO booking (user_id, car_id, start_time, end_time, created_at)
 VALUES ((SELECT id FROM user WHERE username = 'user5'), (SELECT id FROM car WHERE model = 'Forte'), '2023-12-13 10:00:00', '2023-12-13 14:00:00', NOW());
 
 -- fill cat_time_slot_lock with two blocks of time in hour period for each car
-INSERT INTO car_time_slot_lock (car_id, start_time, end_time) VALUES (1, '2023-12-11 10:00:00', '2023-12-11 11:00:00');
+INSERT INTO car_time_slot_lock (car_id, start_time, end_time) VALUES ('', '2023-12-11 10:00:00', '2023-12-11 11:00:00');
 INSERT INTO car_time_slot_lock (car_id, start_time, end_time) VALUES (2, '2023-12-11 11:00:00', '2023-12-11 12:00:00');
 INSERT INTO car_time_slot_lock (car_id, start_time, end_time) VALUES (3, '2023-12-12 09:00:00', '2023-12-12 10:00:00');
 INSERT INTO car_time_slot_lock (car_id, start_time, end_time) VALUES (4, '2023-12-12 10:00:00', '2023-12-12 11:00:00');

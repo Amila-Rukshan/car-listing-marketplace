@@ -1,8 +1,8 @@
 {
   "sharded": true,
   "vindexes": {
-    "hash": {
-      "type": "hash"
+    "uuid_hash": {
+      "type": "unicode_loose_md5"
     }
   },
   "tables": {
@@ -10,44 +10,31 @@
       "column_vindexes": [
         {
           "column": "id",
-          "name": "hash"
+          "name": "uuid_hash"
         }
-      ],
-      "auto_increment": {
-        "column": "id",
-        "sequence": "car-listing-marketplace.user_seq"
-      }
+      ]
     },
     "car": {
       "column_vindexes": [
         {
           "column": "id",
-          "name": "hash",
-          "type": "primary"
+          "name": "uuid_hash"
         }
-      ],
-      "auto_increment": {
-        "column": "id",
-        "sequence": "car-listing-marketplace.car_seq"
-      }
+      ]
     },
     "booking": {
       "column_vindexes": [
         {
           "column": "car_id",
-          "name": "hash"
+          "name": "uuid_hash"
         }
-      ],
-      "auto_increment": {
-        "column": "id",
-        "sequence": "car-listing-marketplace.book_seq"
-      }
+      ]
     },
     "car_time_slot_lock": {
       "column_vindexes": [
         {
           "column": "car_id",
-          "name": "hash"
+          "name": "uuid_hash"
         }
       ]
     }
