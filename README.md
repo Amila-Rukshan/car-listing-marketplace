@@ -1,3 +1,9 @@
+## Architecture
+
+Deployed in `IBM Cloud` in a `Kubernetes` cluster. `Vitess` is used as `MySQL` database clustering solution. `vtgate` act as a database proxy and prevent database overloading with many connections. Our `Node.js` pods are exposed using an `IBM LoadBalancer` instance. 
+
+![alt text](/architecture.png)
+
 ## Run postman collection
 
 |   |  |
@@ -11,7 +17,14 @@
 
 ## Notes
 
-- Authentication / Authorization is handled using JWT bearer tokens
+After posing a car by an admin, it is available for users to book the next day for one hour sized time slots for 24 hours. This should be actually configurable as per the needs.
+
+## Decision I made
+
+- Authentication / Authorization is handled using JWT bearer tokens.
+- Sharded the database to have a higher throughput of transactions and scatter-gather joins for faster car search results.
+- Booking cars for a particular time slot is achieved by materialized locks. Essentially 
+- Database sharding is done as booking transactions are processed only within a shard.
 
 ### Build server
 
