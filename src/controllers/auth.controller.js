@@ -1,5 +1,6 @@
 const bcrypt = require("bcryptjs");
 const { StatusCodes } = require("http-status-codes");
+const {v4: uuid4} = require("uuid");
 const { ROLES } = require("../config/consts/role");
 const { generate_access_token } = require("../utils/auth");
 
@@ -13,8 +14,8 @@ const register = (req, res) => {
         return;
       }
       req.db.query(
-        "INSERT INTO user (username, email, password_hash, role_id) VALUES (?, ?, ?, ?)",
-        [req.body.username, req.body.email, password_hash, ROLES.USER],
+        "INSERT INTO user (id, username, email, password_hash, role_id) VALUES (?, ?, ?, ?, ?)",
+        [uuid4(), req.body.username, req.body.email, password_hash, ROLES.USER],
         (err, result) => {
           req.db.release();
           if (err) {

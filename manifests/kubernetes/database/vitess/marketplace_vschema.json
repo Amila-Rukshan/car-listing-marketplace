@@ -1,8 +1,8 @@
 {
     "tables": {
-        "role": {},
         "user": {},
         "car": {},
-        "booking": {}
+        "booking": {},
+        "car_time_slot_lock": {}
     }
 }

@@ -1,0 +1,55 @@
+{
+  "sharded": true,
+  "vindexes": {
+    "hash": {
+      "type": "hash"
+    }
+  },
+  "tables": {
+    "user": {
+      "column_vindexes": [
+        {
+          "column": "id",
+          "name": "hash"
+        }
+      ],
+      "auto_increment": {
+        "column": "id",
+        "sequence": "car-listing-marketplace.user_seq"
+      }
+    },
+    "car": {
+      "column_vindexes": [
+        {
+          "column": "id",
+          "name": "hash",
+          "type": "primary"
+        }
+      ],
+      "auto_increment": {
+        "column": "id",
+        "sequence": "car-listing-marketplace.car_seq"
+      }
+    },
+    "booking": {
+      "column_vindexes": [
+        {
+          "column": "car_id",
+          "name": "hash"
+        }
+      ],
+      "auto_increment": {
+        "column": "id",
+        "sequence": "car-listing-marketplace.book_seq"
+      }
+    },
+    "car_time_slot_lock": {
+      "column_vindexes": [
+        {
+          "column": "car_id",
+          "name": "hash"
+        }
+      ]
+    }
+  }
+}

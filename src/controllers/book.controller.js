@@ -1,4 +1,6 @@
 const { StatusCodes } = require("http-status-codes");
+const {v4: uuid4} = require("uuid");
+
 const { getFormattedDate } = require("../utils/date");
 
 // book car / need to do transaction with serializable isolation level (enable 2PL) and test
@@ -50,9 +52,11 @@ const place = (req, res) => {
               return;
             }
             if (results.length === 0) {
+              const bookingId = uuid4();
               req.db.query(
-                "INSERT INTO booking (car_id, user_id, start_time, end_time, created_at) VALUES (?, ?, ?, ?, ?)",
+                "INSERT INTO booking (id, car_id, user_id, start_time, end_time, created_at) VALUES (?, ?, ?, ?, ?, ?)",
                 [
+                  bookingId,
                   req.body.car_id,
                   req.user.id,
                   req.body.start_time,
@@ -62,41 +66,41 @@ const place = (req, res) => {
                 (err, results) => {
                   if (err) {
                     req.db.rollback(() => {
+                      req.db.release();
                       res.status(StatusCodes.CONFLICT).send({
                         message: "Conflict error 2",
                       });
                     });
-                    req.db.release();
                     return;
                   }
 
                   req.db.commit((err) => {
                     if (err) {
                       req.db.rollback(() => {
+                        req.db.release();
                         res.status(StatusCodes.CONFLICT).send({
                           message: "Conflict error 3",
                         });
                       });
-                      req.db.release();
                       return;
                     }
 
+                    req.db.release();
                     res.status(StatusCodes.OK).send({
                       message: "Booking is sucessful!",
                       data: {
-                        bookingId: results.insertId,
+                        bookingId: bookingId,
                       },
                     });
-                    req.db.release();
                   });
                 }
               );
             } else {
+              req.db.release();
               res.status(StatusCodes.CONFLICT).send({
                 message:
                   "Booking cannot be placed due to already existing bookings.",
               });
-              req.db.release();
             }
           }
         );

@@ -1,10 +1,13 @@
 const { StatusCodes } = require("http-status-codes");
+const {v4: uuid4} = require("uuid");
 
 // post car, check role of admin / super admin
 const post = (req, res) => {
+  const carId = uuid4();
   req.db.query(
-    "INSERT INTO car (make, model, year, mileage, price, description, image_url) VALUES (?, ?, ?, ?, ?, ?, ?)",
+    "INSERT INTO car (id, make, model, year, mileage, price, description, image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
     [
+      carId,
       req.body.make,
       req.body.model,
       req.body.year,
@@ -15,7 +18,6 @@ const post = (req, res) => {
     ],
     (err, result) => {
       if (err) {
-        req.db.release();
         console.error(err);
         res.status(500).send({
           message: "Internal server error",
@@ -23,7 +25,6 @@ const post = (req, res) => {
         return;
       }
       // insert this car into car_time_slot_lock table with 1 hour time slot the next day (should be configurable)
-      let carId = result.insertId;
       // set start time to next day start time for the next day 00:00:00
       let currentTime = new Date();
       currentTime.setDate(currentTime.getDate() + 1);
@@ -32,6 +33,7 @@ const post = (req, res) => {
       bookingSlotsEndTime.setDate(currentTime.getDate());
       bookingSlotsEndTime.setHours(24, 0, 0, 0);
 
+      let queryCount = 0;
       for (
         let timeSlot = new Date(currentTime);
         timeSlot < bookingSlotsEndTime;
@@ -45,21 +47,24 @@ const post = (req, res) => {
           "INSERT INTO car_time_slot_lock (car_id, start_time, end_time) VALUES (?, ?, ?)",
           [carId, startTime, endTime],
           (err, result) => {
+            queryCount++;
             if (err) {
-              req.db.release();
               console.error(err);
-              res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
-                message: "Internal server error",
-              });
+              if (!res.headersSent) {
+                res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
+                  message: "Internal server error",
+                });
+              }
               return;
+            } else if (queryCount === 24 && !res.headersSent) { // Assuming there are 24 time slots in a day
+              req.db.release();
+              res.status(StatusCodes.OK).send({
+                message: "Car posted successfully!",
+              });
             }
           }
         );
       }
-      req.db.release();
-      res.status(StatusCodes.OK).send({
-        message: "Car posted successfully!",
-      });
     }
   );
 };

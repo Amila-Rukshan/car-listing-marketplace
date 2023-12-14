@@ -9,7 +9,6 @@ const routes = require("./routes/v1");
 const app = express();
 
 app.use(morgan("combined"));
-app.use(databaseMiddleware);
 app.use(express.json());
 app.use(compression());
 app.use(cors());

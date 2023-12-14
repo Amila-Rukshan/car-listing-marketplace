@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const validate = require("../../middleware/validate");
+const { databaseMiddleware } = require("../../middleware/database");
 const {
   placeBookingValidationSchema,
   cancelBookingValidationSchema,
@@ -16,6 +17,7 @@ router.post(
   authenticated,
   authorized(USER_ROLE),
   validate(placeBookingValidationSchema),
+  databaseMiddleware,
   bookController.place
 );
 router.delete(
@@ -23,6 +25,7 @@ router.delete(
   authenticated,
   authorized(USER_ROLE),
   validate(cancelBookingValidationSchema),
+  databaseMiddleware,
   bookController.cancel
 );
 
