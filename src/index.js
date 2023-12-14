@@ -19,10 +19,15 @@ app.use("/v1", routes);
 
 app.get("/", (req, res) => res.json({ message: "Welcome to Car Rental API" }));
 
+const port = process.env.PORT || 3000;
+const server = app.listen(port, () =>
+  console.log(`Car Listing Marketplace Listening on port: ${port}`)
+);
+
 process.on("SIGTERM", () => {
   console.info("SIGTERM signal received.");
   console.log("Closing http server.");
-  app.close(() => {
+  server.close(() => {
     console.log("Http server closed.");
     req.db.end((err) => {
       if (err) {
@@ -34,8 +39,3 @@ process.on("SIGTERM", () => {
     });
   });
 });
-
-const port = process.env.PORT || 3000;
-app.listen(port, () =>
-  console.log(`Car Listing Marketplace Listening on port: ${port}`)
-);
